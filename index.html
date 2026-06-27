@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تساوی کسرها - دبستان معاد خرگوشی</title>
     <script src="supabase.js" defer></script>
     <script src="game-db.js" defer></script>
@@ -20,6 +20,10 @@
             font-style: normal;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         :root {
             --content-height: 45px; 
             --content-font-size: 1.2em; 
@@ -32,8 +36,11 @@
             --input-max-width: 90px; 
         }
         
+        body, input, button, select, textarea, .btn, .input-box {
+            font-family: 'Vazirmatn', sans-serif !important;
+        }
+
         body {
-            font-family: 'Vazirmatn', Tahoma, sans-serif;
             text-align: center;
             background-color: #f7f7f7;
             margin: 0;
@@ -45,17 +52,15 @@
         }
         .page-container {
             max-width: 450px;
+            width: 90%;
             margin: 50px auto;
             background: white;
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
         }
         
-        .hidden { display: none !important; }
-        .screen { display: none; }
-        .screen.active { display: block !important; }
-
         #progressBarContainer {
             display: flex;
             align-items: center;
@@ -160,7 +165,6 @@
             border-radius: 8px;
             text-align: center;
             font-size: 30px !important; 
-            font-family: 'Vazirmatn', Tahoma, sans-serif;
             font-weight: bold;
             direction: ltr; 
             padding: 0;
@@ -171,21 +175,6 @@
             outline: none;
         }
         
-        #registerPage h1 {
-            color: #38761d;
-            border-bottom: 3px solid #6aa84f;
-            padding-bottom: 15px;
-            font-size: 1.8em;
-        }
-        input[type="text"] {
-            width: 90%;
-            padding: 12px;
-            margin: 20px 0;
-            border: 2px solid #a4c2f4;
-            border-radius: 8px;
-            font-size: 1.3em;
-            text-align: center;
-        }
         #feedbackMessage {
             height: 30px;
             margin-bottom: 10px;
@@ -204,7 +193,6 @@
             font-size: 1.4em;
             transition: background-color 0.3s;
             margin: 5px;
-            font-family: inherit;
         }
         .btn:hover {
             background-color: #e69138;
@@ -283,6 +271,7 @@
         }
         #reportPage .page-container { border: 5px solid #a4c2f4; }
         #reportPage h1 { color: #3c78d8; border-bottom: 3px solid #a4c2f4; }
+        #restartBtn { background-color: #6aa84f; }
         
         .confetti {
             position: fixed;
@@ -308,75 +297,95 @@
             0% { top: -10%; opacity: 1; }
             100% { top: 100%; opacity: 0; transform: translateX(calc(var(--x) * 1px)) rotate(var(--r) * 1deg); }
         }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <div id="Screen-Loading" style="display:none; background:#f7f7f7; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
-            <div style="font-size: 3.5rem; margin-bottom: 15px;">🐰</div>
-            <h1 style="color:#38761d; font-size:24pt; margin-bottom:30px; font-weight: bold;">تساوی کسرها</h1>
-            <div style="background:#e0e0e0; border-radius:12px; height:18px; width:80%; max-width:400px; overflow:hidden; margin-bottom:18px; border:2px solid #38761d; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                <div id="portal-loading-bar" style="background: linear-gradient(90deg, #ff007f, #aa00ff, #00b0ff); width:0%; height:100%; transition:width 0.3s ease; box-shadow: 0 0 10px rgba(170,0,255,0.5);"></div>
+        <div id="Screen-Loading" class="page-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 350px; background: #faf8ff; box-shadow: 0 6px 18px rgba(0,0,0,0.12); padding: 35px; box-sizing: border-box; width: 90%; max-width: 450px; margin: 50px auto;">
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">🐇</div>
+            <h1 style="color:#6aa84f; font-size:24pt; margin-bottom:30px; font-weight: bold;">تساوی کسرها</h1>
+            <div style="background:#e0e0e0; border-radius:12px; height:18px; width:80%; overflow:hidden; margin: 0 auto 18px auto; border:2px solid #a4c2f4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <div id="portal-loading-bar" style="background: linear-gradient(90deg, #6aa84f, #3c78d8, #f1c232); width:0%; height:100%; transition:width 0.3s ease;"></div>
             </div>
             <p id="portal-loading-text" style="font-size:13pt; color:#38761d; font-weight:bold;"></p>
         </div>
 
-        <div class="screen page-container" id="screen-register">
-          <div id="registerPage" style="text-align: right; direction: rtl; width: 100%;">
-            <h1 id="portal-school-title">تساوی کسرها - دبستان معاد خرگوشی</h1>
-            <div id="portal-welcome-section" style="width: 100%;">
-              <div style="text-align:center;margin-bottom:15px;font-size:13pt;font-weight:bold;color:#38761d;" id="portal-student-welcome">سلام دانش‌آموز زرنگم! 🌟</div>
-              
-              <div style="display: flex; flex-direction: column; gap: 10px; background: #e8f5e9; border-radius: 12px; padding: 15px; border: 1px dashed #6aa84f; margin-bottom: 20px; font-size:11pt; text-align: right; direction: rtl; width: 100%;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span>👤 نام دانش‌آموز:</span>
-                  <span id="portal-student-name" style="font-weight:bold; color:#38761d;">---</span>
+        <div id="registerPage" class="page-container" style="display: none;">
+            <div id="register-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                <div id="portal-welcome-section" style="text-align:right; direction:rtl; width: 100%;">
+                    <div style="background: linear-gradient(135deg, #f4f9f1, #eef7eb); border: 2px solid #b7e1cd; border-radius: 20px; padding: 22px; box-shadow: 0 10px 25px rgba(106,168,79,0.12); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -10px; left: -10px; font-size: 3rem; opacity: 0.15;">🐇</div>
+                        <div style="text-align:center; font-size:16pt; font-weight:bold; color:#38761d; margin-bottom:15px;" id="portal-school-title">دبستان معاد خرگوشی</div>
+                        
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <span style="font-size: 15pt; font-weight: bold; color: #274e13; display: block;" id="portal-student-welcome">سلام دانش‌آموز زرنگم! 🌟</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 12px; background: rgba(255, 255, 255, 0.7); border-radius: 14px; padding: 15px; border: 1px solid rgba(183, 225, 205, 0.5);">
+                            <div style="display:flex; justify-content:space-between; align-items: center; font-size:12.5pt; font-weight: bold; color: #333;">
+                                <span>👤 نام دانش‌آموز:</span>
+                                <span id="portal-student-name" style="color: #38761d;">---</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items: center; font-size:12pt; color: #333;">
+                                <span>🎮 تعداد بازی‌های قبلی:</span>
+                                <span id="portal-prev-plays" style="font-weight:bold; color:#3c78d8;">۰</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items: center; font-size:12pt; color: #333;">
+                                <span>⭐ ستاره‌های ثبت‌شده:</span>
+                                <span id="portal-prev-stars" style="font-weight:bold; color:#f1c232;">۰ ⭐</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items: center; font-size:12.5pt; font-weight:bold; color:#38761d; border-top:1px dashed #b7e1cd; padding-top:10px; margin-top:5px;">
+                                <span>🎯 ستاره مورد نیاز تکلیف:</span>
+                                <span id="portal-req-stars" style="background:#e8f5e9; padding:2px 8px; border-radius:10px;">۰ ⭐</span>
+                            </div>
+                        </div>
+                        <div style="text-align:center; color:#38761d; font-size:11.5pt; margin-top:15px; font-weight:bold;">آماده‌ای برای یک تلاش فوق‌العاده؟ دکمه زیر رو بزن! 👇</div>
+                    </div>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span>🎮 تعداد بازی‌های قبلی:</span>
-                  <span id="portal-prev-plays" style="font-weight:bold; color:#6aa84f;">۰</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span>⭐ ستاره‌های ثبت‌شده:</span>
-                  <span id="portal-prev-stars" style="font-weight:bold; color:#f1c232;">۰ ⭐</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:#38761d; border-top:1px dashed #6aa84f; padding-top:8px; margin-top:5px;">
-                  <span>🎯 ستاره مورد نیاز تکلیف:</span>
-                  <span id="portal-req-stars">۰ ⭐</span>
-                </div>
-              </div>
+                <button id="startButton" class="btn" style="width: 100%; margin-top: 25px; padding: 15px;"></button>
             </div>
-            <button id="startButton" class="btn" style="width: 100%;">شروع بازی تکلیف 🎮</button>
-            
-            <div id="portal-error-section" style="display:none; text-align:center; padding:20px; max-width: 450px; margin: 12px auto; background: white; border-radius: 12px; box-shadow:0 6px 18px rgba(0,0,0,0.12); width:100%;">
+
+            <div id="portal-error-section" style="display:none; text-align:center;">
                 <div style="font-size:2.5rem; margin-bottom:10px;">⚠️</div>
-                <h3 id="portal-error-title" style="color:#cc0000; margin-bottom:8px; font-weight:bold; font-size:15pt;">خطا در اتصال به پرتال کلاس</h3>
+                <h3 id="portal-error-title" style="color:#cc0000; margin-bottom:8px;">خطا در اتصال به پرتال کلاس</h3>
                 <p id="portal-error-desc" style="color:#555; font-size:12pt; margin-bottom:15px; line-height:1.6;">جهت بارگذاری مشخصات و تکالیفت، اتصال به اینترنت الزامی است. لطفا شبکه‌ات را بررسی کن و مجدداً تلاش کن.</p>
-                <button class="btn" style="background:#3c78d8; color: white; padding: 10px 20px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; width: 100%;" onclick="retryAuthentication()">🔄 تلاش مجدد برای اتصال</button>
+                <button id="portal-retry-auth-btn" style="background:#3c78d8; color:white; border:none; padding:12px 25px; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="retryAuthentication()">🔄 تلاش مجدد برای اتصال</button>
             </div>
-          </div>
         </div>
 
-        <div id="screen-assistant" class="screen page-container">
-          <div style="width: 100%; max-width: 450px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <h2 style="color: #38761d; margin-bottom: 20px; font-size: 1.5rem; font-weight: bold;">🌟 دستیار ثبت ستاره 🌟</h2>
-            <div style="background: #e8f5e9; border: 2px dashed #6aa84f; border-radius: 12px; padding: 20px; margin-bottom: 25px; line-height: 1.8; text-align: justify; direction: rtl;">
-                <span style="font-size: 14pt; font-weight: bold; color: #38761d; display: block; margin-bottom: 10px;" id="ast-welcome">سلام قهرمان!</span>
-                <p style="font-size: 11pt; color: #333; margin: 0;">
+        <div id="screen-assistant" class="page-container" style="display: none;">
+            <h2 style="color: #38761d; margin-bottom: 20px;">🌟 دستیار ثبت ستاره 🌟</h2>
+            <div style="background: #eef7eb; border: 2px solid #b7e1cd; border-radius: 15px; padding: 20px; margin-bottom: 25px; line-height: 1.8; text-align: right; direction: rtl;">
+                <span style="font-size: 14pt; font-weight: bold; color: #274e13; display: block; margin-bottom: 10px;" id="ast-welcome">سلام قهرمان!</span>
+                <p style="font-size: 12pt; color: #333; margin: 0;">
                     بازی قبلی‌ات با موفقیت تمام شده بود، اما به خاطر قطع شدن اینترنت، ستاره‌ی طلایی‌ات به دفتر کلاسی معلم نرسیده بود. 
+                    <br/>
                     اصلاً نگران نباش! نیازی به بازی دوباره نیست. دکمه زیر را بزن تا ستاره‌ات ثبت بشه و کارنامه‌ات رو ببینی. 😊
                 </p>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 10px; background: #fff; border: 1px solid #6aa84f; border-radius: 10px; padding: 15px; margin-bottom: 25px; text-align: right; direction: rtl; font-size:12pt; width: 100%;">
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 25px; text-align: right; direction: rtl;">
                 <div style="display:flex; justify-content:space-between; align-items:center;"><span>👤 نام دانش‌آموز:</span><span id="ast-name" style="font-weight:bold; color:#38761d;">---</span></div>
                 <div style="display:flex; justify-content:space-between; align-items:center;"><span>⭐ ستاره‌های ثبت‌شده قبلی:</span><span id="ast-stars" style="font-weight:bold; color:#f1c232;">۰ ⭐</span></div>
-                <div style="display:flex; justify-content:space-between; align-items:center;"><span>🎯 ستاره هدف تکلیف:</span><span id="ast-req-stars" style="font-weight:bold; color:#6aa84f;">۰ ⭐</span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>🎯 ستاره هدف تکلیف:</span><span id="ast-req-stars" style="font-weight:bold; color:#38761d;">۰ ⭐</span></div>
             </div>
-            <button class="btn" style="background:#27ae60; color:white; width: 100%;" onclick="submitAssistantStar()">🌟 ثبت ستاره‌ی طلایی من و دریافت کارنامه</button>
-          </div>
+
+            <button class="btn" style="width: 100%; padding: 15px; font-size: 13pt; background-color: #6aa84f;" onclick="submitAssistantStar()">🌟 ثبت ستاره‌ی طلایی من و دریافت کارنامه</button>
         </div>
 
-        <div id="screen-game" class="screen">
+        <div id="portal-submitting-screen" class="page-container" style="display: none; text-align:center;">
+            <h3 id="portal-progress-title" style="color:#38761d; margin-bottom:15px; font-weight:bold;">⏳ در حال ارسال نتایج به دیتابیس کلاس...</h3>
+            <div style="background:#eee; border-radius:10px; height:20px; width:100%; overflow:hidden; margin: 0 auto 15px auto; border:1px solid #ccc;">
+                <div id="portal-progress-bar" style="background:linear-gradient(90deg, #6aa84f, #3c78d8); width:0%; height:100%; transition:width 0.2s;"></div>
+            </div>
+            <p id="portal-submit-status-text" style="font-size:12pt; color:#555; font-weight:bold; line-height:1.6; direction:rtl;"></p>
+            <button id="portal-retry-submit-btn" style="display:none; margin:15px auto 0; background:#cc0000; color:white; border:none; padding:10px 25px; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="retrySubmission()">🔄 تلاش مجدد برای ارسال</button>
+        </div>
+
+        <div id="gamePage" style="display: none;">
             <div id="profileBar">
                 <div>
                     <span id="studentName"></span> 🐇 
@@ -432,50 +441,47 @@
             <div id="confettiContainer" class="confetti"></div>
         </div>
 
-        <div id="portal-submitting-screen" class="screen page-container">
-          <div style="width: 100%; max-width: 450px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <h3 id="portal-progress-title" style="color:#38761d; margin-bottom:15px; font-weight:bold; font-size:16pt;">⏳ در حال ارسال نتایج به دیتابیس کلاس...</h3>
-            <div style="background:#eee; border-radius:10px; height:20px; width:100%; overflow:hidden; margin-bottom:15px; border:1px solid #ccc;">
-                <div id="portal-progress-bar" style="background:linear-gradient(90deg, #ff007f, #aa00ff, #00b0ff); width:0%; height:100%; transition:width 0.2s;"></div>
-            </div>
-            <p id="portal-submit-status-text" style="font-size:12pt; color:#555; font-weight:bold; line-height:1.6; direction:rtl;"></p>
-            <button id="portal-retry-submit-btn" class="btn" style="display:none; margin:15px auto 0; background:#f44336; color:white;" onclick="retrySubmission()">🔄 تلاش مجدد برای ارسال</button>
-          </div>
-        </div>
-
-        <div id="screen-report" class="screen page-container">
-          <div style="width: 100%; max-width: 450px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <div id="reportPage" class="page-container" style="display: none;">
             <h1>🏆 گزارش عملکرد بازی 🏆</h1>
             
-            <div id="report-content" style="width: 100%;"></div>
-            
-            <div id="portal-submit-badge" style="display:none; background:#ffe4e1; border:1px solid #6aa84f; color:#38761d; padding:15px; border-radius:12px; margin-bottom:12px; font-weight:bold; font-size:12.5pt; line-height:1.6; text-align:right; width: 100%;"></div>
+            <div id="portal-submit-badge" style="display:none; background:#fff3e0; border:1px solid #ffe082; color:#e65100; padding:15px; border-radius:12px; margin-bottom:12px; font-weight:bold; font-size:12.5pt; line-height:1.6; text-align:right;">
+            </div>
 
-            <div id="portal-goal-reached-badge" style="display:none; background:#e8f5e9; border:2px solid #6aa84f; color:#38761d; padding:15px; border-radius:12px; margin-bottom:15px; font-weight:bold; font-size:12.5pt; line-height:1.6; direction:rtl; text-align:right; width: 100%;">
+            <div id="portal-goal-reached-badge" style="display:none; background:#e8f5e9; border:2px solid #2e7d32; color:#1b5e20; padding:15px; border-radius:12px; margin-bottom:15px; font-weight:bold; font-size:12.5pt; line-height:1.6; direction:rtl; text-align:right;">
                 🎉 هوراااا قهرمان پرتلاش! هدف تکلیف رو کاملاً ترکوندی و همه‌ی ستاره‌های مورد نیاز رو گرفتی! تو فوق‌العاده‌ای! 🥇 حالا می‌تونی با خیال راحت به پرتال برگردی. خداقوت! ❤️
             </div>
 
-            <div id="portal-back-instruction" style="display:none; width: 100%;"></div>
-
-            <div class="btn-group" id="normal-report-buttons" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-                <button id="whatsappBtn" class="btn" style="width: 100%; margin: 0;">ارسال به معلم (واتساپ)</button>
-                <button id="restartBtn" class="btn" style="width: 100%; margin: 0;">بازی دوباره</button>
+            <div class="report-item">نام بازی: <strong>تساوی کسرها</strong></div>
+            <div class="report-item">نام دانش‌آموز: <strong id="repStudentName">...</strong></div>
+            <div class="report-item">تاریخ و ساعت: <strong id="repDateTime">...</strong></div>
+            <div class="report-item">تعداد کل بازی‌ها: 🎮 <strong id="repTotalGames">...</strong></div>
+            <div class="report-item">تعداد کل ستاره‌ها: ⭐ <strong id="repTotalStars">...</strong></div>
+            <div class="report-item" id="rep-req-stars-row" style="display: none;">🎯 ستاره مورد نیاز تکلیف: ⭐ <strong id="repRequiredStars">...</strong></div>
+            <div class="report-item">تعداد کمک (آموزش) در این بازی: 💡 <strong id="repGameHelps">...</strong></div>
+            
+            <div style="text-align:center; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;">
+                <button id="restartBtn" class="btn" style="width: 100%; margin: 10px auto;">بازی دوباره</button>
+                <div id="portal-back-instruction" style="display:none; width: 100%;"></div>
             </div>
-          </div>
         </div>
     </div>
     
     <script>
-        let STORAGE = 'KasrGame_playerState';
-        let GAME_STATE_STORAGE = 'KasrGame_gameState';
         const STORAGE_PREFIX = 'KasrGame_';
         const TOTAL_STAGES = 10; 
-        const TEACHER_NUMBER = '989392291209';
 
         let currentStage;
         let stageData = {};
         let isAnswerCorrect = false;
-        let playerData = { name: '', totalGames: 0, totalStars: 0, currentScreen: 'register' };
+
+        let STORAGE = 'KasrGame_studentProfile';
+        let GAME_STATE_STORAGE = 'KasrGame_gameState';
+
+        let profileState = {
+            studentName: '',
+            totalStars: 0,
+            totalGames: 0
+        };
 
         const toPersianDigits = (num) => {
             if (num === null || num === undefined) return '';
@@ -491,82 +497,46 @@
         const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
         const showScreen = (id) => {
-            const screens = ['screen-register', 'screen-game', 'screen-report', 'screen-assistant', 'portal-submitting-screen'];
+            const screens = ['registerPage', 'gamePage', 'reportPage', 'screen-assistant', 'portal-submitting-screen', 'Screen-Loading'];
             screens.forEach(s => {
                 const el = document.getElementById(s);
                 if (el) {
-                    el.classList.remove('active');
                     el.style.display = 'none';
+                    el.classList.add('hidden');
                 }
             });
             const target = document.getElementById(id);
             if (target) {
-                target.classList.add('active');
                 target.style.display = 'block';
-            }
-        };
-        
-        const setWhatsappBtnSentState = (isSent = true) => {
-            const btn = document.getElementById('whatsappBtn');
-            if (!btn) return;
-            
-            if (isSent) {
-                btn.textContent = 'ارسال شد ✅';
-                btn.disabled = true;
-                btn.style.backgroundColor = '#6aa84f'; 
-                btn.style.opacity = 0.8;
-                btn.style.pointerEvents = 'none';
-            } else {
-                btn.textContent = 'ارسال به معلم (واتساپ)';
-                btn.disabled = false;
-                btn.style.backgroundColor = '#128C7E'; 
-                btn.style.opacity = 1;
-                btn.style.pointerEvents = 'auto';
+                target.classList.remove('hidden');
             }
         };
 
-        const updateProgressBar = (stage) => {
-            const rabbit = document.getElementById('rabbit');
-            const totalSteps = TOTAL_STAGES - 1; 
-            const progressRatio = Math.min(1, Math.max(0, (stage - 1) / totalSteps));
-            const minPos = 5; 
-            const maxPos = 95; 
-            const finalPosition = minPos + progressRatio * (maxPos - minPos);
-            rabbit.style.right = `${finalPosition}%`;
+        const saveProfileState = () => {
+            localStorage.setItem(STORAGE, JSON.stringify(profileState));
         };
 
-        const loadProfile = () => {
-            const playerState = localStorage.getItem(STORAGE);
-            currentStage = parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentStage')) || 1;
-            
-            if (playerState) {
+        const loadProfileState = () => {
+            const data = localStorage.getItem(STORAGE);
+            if (data) {
                 try {
-                    playerData = JSON.parse(playerState);
-                    if (typeof playerData.currentScreen === 'undefined') playerData.currentScreen = 'register';
-                } catch(e){}
+                    profileState = JSON.parse(data);
+                } catch (e) {
+                    profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0 };
+                }
+            } else {
+                profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0 };
             }
-        };
-
-        const saveData = () => {
-            localStorage.setItem(STORAGE, JSON.stringify(playerData));
         };
 
         const saveGameState = () => {
-            localStorage.setItem(GAME_STATE_STORAGE, JSON.stringify({
+            const state = {
                 currentStage: currentStage,
-                gameHelps: parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentGameHelps')) || 0
-            }));
-        };
-
-        const loadGameState = () => {
-            const saved = localStorage.getItem(GAME_STATE_STORAGE);
-            if (saved) {
-                try {
-                    const d = JSON.parse(saved);
-                    currentStage = d.currentStage;
-                    localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', d.gameHelps || 0);
-                } catch (e) {}
-            }
+                stageData: stageData,
+                isAnswerCorrect: isAnswerCorrect,
+                currentGameHelps: parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentGameHelps')) || 0
+            };
+            localStorage.setItem(GAME_STATE_STORAGE, JSON.stringify(state));
         };
 
         const clearGameState = () => {
@@ -574,20 +544,91 @@
         };
 
         const checkSavedUnfinishedState = () => {
-            try {
-                const saved = localStorage.getItem(GAME_STATE_STORAGE);
-                if (saved) {
-                    const d = JSON.parse(saved);
-                    if (d && d.currentStage !== undefined && d.currentStage <= TOTAL_STAGES) return d;
-                }
-            } catch (e) {}
+            const saved = localStorage.getItem(GAME_STATE_STORAGE);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.currentStage && parsed.currentStage <= TOTAL_STAGES) {
+                        return parsed;
+                    }
+                } catch (e) {}
+            }
             return null;
         };
 
+        const updateProgressBar = (stage) => {
+            const rabbit = document.getElementById('rabbit');
+            const totalSteps = TOTAL_STAGES - 1; 
+            
+            const progressRatio = Math.min(1, Math.max(0, (stage - 1) / totalSteps));
+            
+            const minPos = 5; 
+            const maxPos = 95; 
+            const finalPosition = minPos + progressRatio * (maxPos - minPos);
+            
+            rabbit.style.right = `${finalPosition}%`;
+        };
+
+        const loadProfile = () => {
+            loadProfileState();
+            const savedState = checkSavedUnfinishedState();
+            if (savedState) {
+                currentStage = savedState.currentStage;
+            } else {
+                currentStage = 1;
+            }
+            
+            if (currentStage <= TOTAL_STAGES) {
+                showScreen('gamePage');
+                updateProfile();
+                if (savedState) {
+                    loadSavedStage(savedState);
+                } else {
+                    loadStage(currentStage);
+                }
+                updateProgressBar(currentStage);
+            } else {
+                showScreen('reportPage');
+                loadReport();
+            }
+        };
+
+        const loadSavedStage = (savedState) => {
+            currentStage = savedState.currentStage;
+            stageData = savedState.stageData;
+            isAnswerCorrect = savedState.isAnswerCorrect;
+            localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', savedState.currentGameHelps || 0);
+            displayFraction(stageData);
+            if (isAnswerCorrect) {
+                const answerBox = document.getElementById('answerBox');
+                if (answerBox) {
+                    answerBox.value = toPersianDigits(stageData.correctAnswer);
+                    answerBox.style.borderColor = '#6aa84f';
+                    answerBox.disabled = true;
+                }
+                const isLastStage = (currentStage === TOTAL_STAGES);
+                const checkBtn = document.getElementById('checkBtn');
+                checkBtn.dataset.state = "next";
+                if (isLastStage) {
+                    checkBtn.textContent = 'پایان 🏁';
+                    checkBtn.style.backgroundColor = '#27ae60';
+                } else {
+                    checkBtn.textContent = 'مرحله بعد ➡️';
+                    checkBtn.style.backgroundColor = '#6aa84f';
+                }
+                const tutorialBtn = document.getElementById('tutorialBtn');
+                tutorialBtn.disabled = true;
+                tutorialBtn.style.opacity = '0.5';
+                tutorialBtn.style.pointerEvents = 'none';
+            }
+            updateProfile();
+            updateProgressBar(currentStage);
+        };
+
         const updateProfile = () => {
-            const name = playerData.name || 'دانش‌آموز';
-            const stars = playerData.totalStars || 0;
-            const games = playerData.totalGames || 0;
+            const name = profileState.studentName || 'دانش‌آموز';
+            const stars = profileState.totalStars || 0;
+            const games = profileState.totalGames || 0;
 
             document.getElementById('studentName').textContent = name;
             document.getElementById('totalStars').textContent = toPersianDigits(stars);
@@ -667,7 +708,10 @@
 
                 if (index === data.missingIndex) {
                     element.innerHTML = `<input type="text" id="answerBox" class="input-box" maxlength="4" inputmode="numeric">`;
-                    setTimeout(() => document.getElementById('answerBox').focus(), 100); 
+                    setTimeout(() => {
+                        const answerBox = document.getElementById('answerBox');
+                        if (answerBox) answerBox.focus();
+                    }, 100); 
                 } else {
                     element.textContent = toPersianDigits(values[index]);
                 }
@@ -698,38 +742,35 @@
             displayFraction(stageData);
             updateProfile();
             updateProgressBar(stage);
+            saveGameState();
         };
 
-        const finishGame = async (onlyShow = false) => {
-            playerData.currentScreen = 'report';
-            if (!onlyShow) {
-                let stars = parseInt(playerData.totalStars) || 0;
-                let games = parseInt(playerData.totalGames) || 0;
-                playerData.totalStars = stars + 1;
-                playerData.totalGames = games + 1;
-                playerData.reportSent = false;
-            }
+        const finishGame = async () => {
+            const earnedThisGame = 1;
             
+            loadProfileState();
+            profileState.totalGames++;
+            profileState.totalStars += earnedThisGame;
+            saveProfileState();
             clearGameState();
-            saveProfile();
 
-            if (Portal.isPortalMode && !onlyShow) {
+            if (Portal.isPortalMode) {
                 showScreen('portal-submitting-screen');
-                await Portal.submitProgress(1, {
+                await Portal.submitProgress(earnedThisGame, {
                     onSuccess: (data) => {
-                        playerData.totalGames = data.plays;
-                        playerData.totalStars = data.stars;
-                        saveProfile();
-                        updateProfile();
-                        showScreen('screen-report');
-                        loadReport(data.goalReached, data.stars);
+                        profileState.totalGames = data.plays;
+                        profileState.totalStars = data.stars;
+                        saveProfileState();
+                        showScreen('reportPage');
+                        loadReport();
+                        renderReport(data.goalReached, data.stars);
                     },
                     onFailure: (err) => {}
                 });
             } else {
-                showScreen('screen-report');
-                const isGoalReached = Portal.isPortalMode ? (parseInt(playerData.totalStars) >= parseInt(Portal.requiredStars)) : false;
-                loadReport(isGoalReached, playerData.totalStars);
+                showScreen('reportPage');
+                loadReport();
+                renderReport(false, profileState.totalStars);
             }
         };
 
@@ -758,7 +799,6 @@
                 const isLastStage = (currentStage === TOTAL_STAGES);
 
                 currentStage++;
-                localStorage.setItem(STORAGE_PREFIX + 'currentStage', currentStage);
                 saveGameState();
                 
                 feedbackMessage.textContent = 'درسته! آفرین! 🎉';
@@ -768,7 +808,7 @@
                 checkBtn.dataset.state = "next";
                 
                 if (isLastStage) {
-                    checkBtn.textContent = '🏁 پایان';
+                    checkBtn.textContent = 'پایان 🏁';
                     checkBtn.style.backgroundColor = '#27ae60'; 
                 } else {
                     checkBtn.textContent = 'مرحله بعد ➡️';
@@ -841,7 +881,6 @@
 
             let helps = parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentGameHelps')) || 0;
             localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', helps + 1);
-            saveGameState();
             document.getElementById('feedbackMessage').textContent = ''; 
 
             const missingElementId = ['num1', 'den1', 'num2', 'den2'][stageData.missingIndex];
@@ -914,121 +953,139 @@
             drawArrow(startDenCoords.x, startDenCoords.y, endDenCoords.x, endDenCoords.y, operationText, 'bottom');
             
             document.getElementById('visualExplanation').style.display = 'block';
+            saveGameState();
         };
 
         const handleNextQuestion = () => {
             document.getElementById('feedbackMessage').textContent = ''; 
-            loadStage(currentStage);
+            if (currentStage > TOTAL_STAGES) {
+                finishGame();
+            } else {
+                isAnswerCorrect = false;
+                saveGameState();
+                loadStage(currentStage);
+            }
         };
 
         const runConfetti = () => {
             const confettiContainer = document.getElementById('confettiContainer');
             const emojis = ['⭐', '💖', '🎉', '🌸', '✨']; 
+            
             confettiContainer.innerHTML = ''; 
+            
             for (let i = 0; i < 70; i++) {
                 const piece = document.createElement('div');
                 piece.classList.add('confetti-piece');
+                
                 piece.textContent = emojis[getRandomInt(0, emojis.length - 1)]; 
                 piece.style.fontSize = `${getRandomInt(12, 22)}px`; 
+                
                 piece.style.left = `${getRandomInt(0, 100)}%`;
+                
                 const delay = (Math.random() * 2.5).toFixed(2);
                 const duration = (2 + Math.random() * 2).toFixed(2);
+                
                 piece.style.animationDelay = `${delay}s`;
                 piece.style.animationDuration = `${duration}s`;
+                
                 piece.style.setProperty('--x', getRandomInt(-150, 150)); 
                 piece.style.setProperty('--r', getRandomInt(0, 360));
+                
                 confettiContainer.appendChild(piece);
             }
+            
             setTimeout(() => {
                 confettiContainer.innerHTML = '';
             }, 5000);
         };
 
-        const loadReport = (goalReached, currentStars) => {
-            const name = playerData.name || 'نامشخص';
-            const stars = Portal.isPortalMode ? currentStars : playerData.totalStars;
-            const games = Portal.isPortalMode ? playerData.totalGames : playerData.totalGames;
+        const loadReport = () => {
+            loadProfileState();
+            const name = profileState.studentName || 'نامشخص';
+            const totalStars = profileState.totalStars || 0;
+            const totalGames = profileState.totalGames || 0;
             const gameHelps = parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentGameHelps')) || 0;
             const now = new Date();
 
             const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             const formattedDate = now.toLocaleDateString('fa-IR', dateOptions);
 
-            document.getElementById('report-content').innerHTML = `
-                <div class="report-item">نام دانش‌آموز: <strong>${name}</strong></div>
-                <div class="report-item">تاریخ و ساعت: <strong>${formattedDate}</strong></div>
-                <div class="report-item">تعداد کل بازی‌ها: 🎮 <strong>${toPersianDigits(games)}</strong></div>
-                <div class="report-item">تعداد کل ستاره‌ها: ⭐ <strong>${toPersianDigits(stars)}</strong></div>
-                <div class="report-item">تعداد کمک (آموزش) در این بازی: 💡 <strong>${toPersianDigits(gameHelps)}</strong></div>
-            `;
+            document.getElementById('repStudentName').textContent = name;
+            document.getElementById('repDateTime').textContent = formattedDate;
+            document.getElementById('repTotalGames').textContent = toPersianDigits(totalGames);
+            document.getElementById('repTotalStars').textContent = toPersianDigits(totalStars);
+            document.getElementById('repGameHelps').textContent = toPersianDigits(gameHelps);
 
+            localStorage.removeItem(STORAGE_PREFIX + 'currentGameHelps');
+        };
+
+        const renderReport = (goalReached, currentStars) => {
             const goalBadge = document.getElementById('portal-goal-reached-badge');
             const submitBadge = document.getElementById('portal-submit-badge');
             const restartBtn = document.getElementById('restartBtn');
             const backInstruction = document.getElementById('portal-back-instruction');
 
-            goalBadge.style.display = 'none';
-            submitBadge.style.display = 'none';
-            backInstruction.style.display = 'none';
+            if (goalBadge) goalBadge.style.display = 'none';
+            if (submitBadge) submitBadge.style.display = 'none';
+            if (restartBtn) restartBtn.style.display = 'none';
+            if (backInstruction) backInstruction.style.display = 'none';
 
+            const reqRow = document.getElementById('rep-req-stars-row');
             if (Portal.isPortalMode) {
-                document.getElementById('whatsappBtn').style.display = 'none';
-                if (goalReached) {
-                    goalBadge.style.display = 'block';
-                    restartBtn.style.display = 'none';
-                    backInstruction.innerHTML = `
-                        <div style="background:#e8f5e9; border:1px solid #6aa84f; color:#38761d; padding:15px; border-radius:12px; margin-top:10px; font-weight:bold; font-size:12pt; line-height:1.6; text-align:center;">
-                            📱 آفرین! تکلیف با موفقیت تکمیل شد.<br>
-                            حالا با زدن <b>دکمه بازگشت (Back) گوشی</b> به پرتال کلاس برگرد.
-                        </div>
-                    `;
-                    backInstruction.style.display = 'block';
-                } else {
-                    const remaining = Portal.requiredStars - stars;
-                    submitBadge.innerHTML = `✨ آفرین دانش‌آموز زرنگم! تو <b>${toPersianDigits(stars)}</b> ستاره از <b>${toPersianDigits(Portal.requiredStars)}</b> ستاره‌ی این تکلیف رو گرفتی! ⭐ فقط به <b>${toPersianDigits(remaining)}</b> ستاره‌ی دیگه نیاز داری تا تیک تکلیف بخوره. بدو برو بعدی رو حل کن! 🏆`;
-                    submitBadge.style.display = 'block';
-                    restartBtn.style.display = 'block';
-                    backInstruction.innerHTML = `
-                        <div style="background:#fff3e0; border:1px solid #ffe082; color:#e65100; padding:12px; border-radius:12px; margin-top:10px; font-size:11.5pt; line-height:1.6; text-align:center;">
-                            💡 اگر می‌خواهی بعداً بازی کنی، با زدن <b>دکمه بازگشت (Back) گوشی</b> به پرتال برگرد.
-                        </div>
-                    `;
-                    backInstruction.style.display = 'block';
+                if (reqRow) {
+                    reqRow.style.display = 'block';
+                    document.getElementById('repRequiredStars').textContent = toPersianDigits(Portal.requiredStars);
                 }
             } else {
-                restartBtn.style.display = 'block';
-                document.getElementById('whatsappBtn').style.display = 'block';
+                if (reqRow) reqRow.style.display = 'none';
+            }
+
+            if (Portal.isPortalMode) {
+                if (goalReached) {
+                    if (goalBadge) {
+                        goalBadge.style.display = 'block';
+                    }
+                    if (backInstruction) {
+                        backInstruction.innerHTML = `
+                            <div style="background:#e3f2fd; border:1px solid #90caf9; color:#0d47a1; padding:15px; border-radius:12px; margin-top:10px; font-weight:bold; font-size:12pt; line-height:1.6; text-align:center;">
+                                📱 آفرین! تکلیف با موفقیت تکمیل شد.<br>
+                                حالا با زدن <b>دکمه بازگشت (Back) گوشی</b> به پرتال کلاس برگرد.
+                            </div>
+                        `;
+                        backInstruction.style.display = 'block';
+                    }
+                } else {
+                    if (submitBadge) {
+                        const remaining = Portal.requiredStars - currentStars;
+                        submitBadge.innerHTML = `✨ آفرین دانش‌آموز زرنگم! تو <b>${toPersianDigits(currentStars)}</b> ستاره از <b>${toPersianDigits(Portal.requiredStars)}</b> ستاره‌ی این تکلیف رو گرفتی! ⭐ فقط به <b>${toPersianDigits(remaining)}</b> ستاره‌ی دیگه نیاز داری تا تیک تکلیف بخوره. بدو برو بعدی رو حل کن! 🏆`;
+                        submitBadge.style.display = 'block';
+                    }
+                    if (restartBtn) {
+                        restartBtn.textContent = 'گرفتن ستاره بیشتر 🎮';
+                        restartBtn.style.display = 'block';
+                        restartBtn.style.backgroundColor = '#6aa84f';
+                        restartBtn.style.color = 'white';
+                    }
+                    if (backInstruction) {
+                        backInstruction.innerHTML = `
+                            <div style="background:#fff3e0; border:1px solid #ffe082; color:#e65100; padding:12px; border-radius:12px; margin-top:10px; font-size:11.5pt; line-height:1.6; text-align:center;">
+                                💡 اگر می‌خواهی بعداً بازی کنی، با زدن <b>دکمه بازگشت (Back) گوشی</b> به پرتال برگرد.
+                            </div>
+                        `;
+                        backInstruction.style.display = 'block';
+                    }
+                }
+            } else {
+                if (restartBtn) {
+                    restartBtn.textContent = 'بازی دوباره';
+                    restartBtn.style.display = 'block';
+                    restartBtn.style.backgroundColor = '#6aa84f';
+                    restartBtn.style.color = 'white';
+                }
             }
         };
 
-        const sendToWhatsapp = () => {
-            const name = playerData.name || 'نامشخص';
-            const date = new Date().toLocaleDateString('fa-IR');
-            const games = toPersianDigits(playerData.totalGames);
-            const stars = toPersianDigits(playerData.totalStars);
-            const helps = toPersianDigits(parseInt(localStorage.getItem(STORAGE_PREFIX + 'currentGameHelps')) || 0);
-
-            const message = `
-- نام بازی: تساوی کسرها
-- نام دانش‌آموز: ${name}
-- تاریخ اتمام: ${date}
----
-- تعداد کل بازی‌ها: ${games}
-- تعداد کل ستاره‌ها: ${stars}
-- تعداد استفاده از آموزش در این بازی: ${helps}
-دبستان معاد خرگوشی
-            `;
-            
-            const encodedMessage = encodeURIComponent(message.trim());
-            window.location.href = `whatsapp://send?phone=${TEACHER_NUMBER}&text=${encodedMessage}`;
-            
-            const totalGames = parseInt(playerData.totalGames) || 0;
-            localStorage.setItem(STORAGE_PREFIX + 'whatsappSentForGame_' + totalGames, 'true');
-            
-            setWhatsappBtnSentState(true);
-        };
-
-        window.submitAssistantStar = async function() {
+        const submitAssistantStar = async () => {
             showScreen('portal-submitting-screen');
             await Portal.submitProgress(null, {
                 onSuccess: (data) => {
@@ -1038,118 +1095,88 @@
             });
         };
 
-        window.retryAuthentication = function() {
-            authenticatePortalStudent();
-        };
-
-        window.retrySubmission = function() {
-            document.getElementById('portal-submit-status-text').style.color = '#555';
-            document.getElementById('portal-progress-bar').style.backgroundColor = '#7b1fa2';
-            Portal.submitProgress(null, Portal._lastSubmitCallbacks);
-        };
-
         async function authenticatePortalStudent() {
             await Portal.authenticate({
                 onSuccess: (data) => {
-                    document.getElementById('portal-welcome-section').style.display = '';
-                    document.getElementById('startButton').style.display = '';
-                    document.getElementById('portal-error-section').style.display = 'none';
-
-                    STORAGE = `studentProfile_TasaviKasr_${Portal.studentId}_${Portal.homeworkId}`;
-                    GAME_STATE_STORAGE = `gameState_TasaviKasr_${Portal.studentId}_${Portal.homeworkId}`;
+                    STORAGE = `studentProfile_KasrGame_${Portal.studentId}_${Portal.homeworkId}`;
+                    GAME_STATE_STORAGE = `gameState_KasrGame_${Portal.studentId}_${Portal.homeworkId}`;
                     
-                    const saved = localStorage.getItem(STORAGE);
-                    if (saved) {
-                        try {
-                            playerData = JSON.parse(saved);
-                            if (typeof playerData.currentScreen === 'undefined') playerData.currentScreen = 'register';
-                        } catch (e) {}
-                    } else {
-                        playerData = {
-                            name: data.name,
-                            totalGames: data.plays,
-                            totalStars: data.stars,
-                            currentScreen: 'register'
-                        };
-                    }
-                    
-                    playerData.name = data.name || Portal.studentName || playerData.name || "دانش‌آموز";
-                    playerData.totalGames = data.plays !== undefined ? data.plays : playerData.totalGames;
-                    playerData.totalStars = data.stars !== undefined ? data.stars : playerData.totalStars;
-                    
-                    saveData();
-                    updateProfile();
+                    loadProfileState();
+                    profileState.studentName = data.name || Portal.studentName || profileState.studentName || "دانش‌آموز";
+                    profileState.totalGames = data.plays !== undefined ? data.plays : profileState.totalGames;
+                    profileState.totalStars = data.stars !== undefined ? data.stars : profileState.totalStars;
+                    saveProfileState();
 
-                    document.getElementById('portal-student-name').textContent = playerData.name;
-                    document.getElementById('portal-prev-plays').textContent = toPersianDigits(playerData.totalGames);
-                    document.getElementById('portal-prev-stars').textContent = toPersianDigits(playerData.totalStars) + ' ⭐';
-                    document.getElementById('portal-req-stars').textContent = toPersianDigits(Portal.requiredStars) + ' ⭐';
-
-                    const activeState = checkSavedUnfinishedState();
+                    const savedState = checkSavedUnfinishedState();
                     const startBtn = document.getElementById('startButton');
-                    if (activeState) {
+                    if (savedState) {
                         startBtn.textContent = 'ادامه بازی (باقیمانده) 🔄';
-                        startBtn.style.backgroundColor = '#ff9800';
+                        startBtn.style.backgroundColor = '#e69138';
                     } else {
                         startBtn.textContent = 'شروع بازی تکلیف 🎮';
-                        startBtn.style.backgroundColor = '#e67e22';
+                        startBtn.style.backgroundColor = '#2ecc71';
                     }
+                    startBtn.style.display = 'inline-block';
 
                     const needsSubmitKey = `portal_needs_submit_${Portal.gameId}_${Portal.studentId}_${Portal.homeworkId}`;
                     const hasUnsentStar = localStorage.getItem(needsSubmitKey) === 'true';
 
                     if (hasUnsentStar) {
-                        document.getElementById('ast-welcome').textContent = `سلام ${playerData.name} عزیز! 🌟`;
-                        document.getElementById('ast-name').textContent = playerData.name;
-                        document.getElementById('ast-stars').textContent = toPersianDigits(playerData.totalStars) + ' ⭐';
+                        document.getElementById('ast-welcome').textContent = `سلام ${profileState.studentName} عزیز! 🌟`;
+                        document.getElementById('ast-name').textContent = profileState.studentName;
+                        document.getElementById('ast-stars').textContent = toPersianDigits(profileState.totalStars) + ' ⭐';
                         document.getElementById('ast-req-stars').textContent = toPersianDigits(Portal.requiredStars) + ' ⭐';
                         showScreen('screen-assistant');
-                    } else if (playerData.currentScreen === 'report') {
-                        showScreen('screen-report');
-                        const isGoalReached = Portal.isPortalMode ? (parseInt(playerData.totalStars) >= parseInt(Portal.requiredStars)) : false;
-                        loadReport(isGoalReached, playerData.totalStars);
-                    } else if (activeState) {
-                        showScreen('screen-game');
-                        loadState();
-                        loadStage(currentStage);
                     } else {
-                        showScreen('screen-register');
+                        showScreen('registerPage');
+                        document.getElementById('portal-welcome-section').style.display = 'block';
+                        document.getElementById('portal-student-name').textContent = profileState.studentName;
+                        document.getElementById('portal-prev-plays').textContent = toPersianDigits(profileState.totalGames);
+                        document.getElementById('portal-prev-stars').textContent = toPersianDigits(profileState.totalStars) + ' ⭐';
+                        document.getElementById('portal-req-stars').textContent = toPersianDigits(Portal.requiredStars) + ' ⭐';
                     }
                 },
                 onFailure: (err) => {
-                    showScreen('screen-register');
-                    document.getElementById('portal-welcome-section').style.display = 'none';
-                    document.getElementById('startButton').style.display = 'none';
+                    showScreen('registerPage');
+                    document.getElementById('register-container').style.display = 'none';
                     document.getElementById('portal-error-section').style.display = 'block';
                 },
                 onGuestMode: () => {
-                    showScreen('screen-register');
-                    document.getElementById('portal-welcome-section').style.display = 'none';
-                    document.getElementById('startButton').style.display = 'none';
-                    document.getElementById('portal-error-title').textContent = 'لینک ورود نامعتبر است';
-                    document.getElementById('portal-error-desc').textContent = 'جهت انجام این تکلیف، حتماً باید از طریق پنل مدرسه و با لینک اختصاصی خود وارد شوی.';
-                    document.getElementById('portal-retry-auth-btn').style.display = 'none';
-                    document.getElementById('portal-error-section').style.display = 'block';
+                    document.getElementById('register-container').style.display = 'none';
+                    const errSec = document.getElementById('portal-error-section');
+                    if (errSec) {
+                        document.getElementById('portal-error-title').textContent = 'لینک ورود نامعتبر است';
+                        document.getElementById('portal-error-desc').innerHTML = 'جهت انجام این تکلیف، حتماً باید از طریق پنل مدرسه و با لینک اختصاصی خود وارد شوید.';
+                        document.getElementById('portal-retry-auth-btn').style.display = 'none';
+                        errSec.style.display = 'block';
+                    }
+                    showScreen('registerPage');
                 }
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            
+            showScreen('Screen-Loading');
+            authenticatePortalStudent();
+
             document.getElementById('startButton').addEventListener('click', () => {
-                playerData.currentScreen = 'game';
-                const activeState = checkSavedUnfinishedState();
-                if (activeState) {
-                    loadState();
+                loadProfileState();
+                const savedState = checkSavedUnfinishedState();
+                if (savedState) {
+                    currentStage = savedState.currentStage;
                 } else {
                     currentStage = 1;
-                    localStorage.setItem(STORAGE_PREFIX + 'currentStage', 1);
                     localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
-                    saveGameState();
+                    clearGameState();
                 }
-                saveData();
-                showScreen('screen-game');
-                loadStage(currentStage);
+                showScreen('gamePage');
+                updateProfile();
+                if (savedState) {
+                    loadSavedStage(savedState);
+                } else {
+                    loadStage(currentStage);
+                }
+                updateProgressBar(currentStage);
             });
 
             document.addEventListener('input', (e) => {
@@ -1188,31 +1215,27 @@
 
             document.getElementById('tutorialBtn').addEventListener('click', handleTutorial);
 
-            document.getElementById('whatsappBtn').addEventListener('click', sendToWhatsapp);
             document.getElementById('restartBtn').addEventListener('click', () => {
-                localStorage.setItem(STORAGE_PREFIX + 'currentStage', 1); 
+                currentStage = 1; 
                 localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
-                currentStage = 1;
-                playerData.currentScreen = 'game';
-                saveGameState();
-                saveData();
-                showScreen('screen-game');
+                clearGameState();
+                showScreen('gamePage');
+                updateProfile();
                 loadStage(currentStage);
+                updateProgressBar(currentStage);
             });
-
-            loadProfile();
-            authenticatePortalStudent();
-
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js');
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
-                    if (!refreshing) {
-                        window.location.reload();
-                    }
-                });
-            }
         });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    window.location.reload();
+                    refreshing = true;
+                }
+            });
+        }
     </script>
 </body>
 </html>
