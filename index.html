@@ -307,7 +307,7 @@
         <div id="Screen-Loading" class="page-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 350px; background: #faf8ff; box-shadow: 0 6px 18px rgba(0,0,0,0.12); padding: 35px; box-sizing: border-box; width: 90%; max-width: 450px; margin: 50px auto;">
             <div style="font-size: 3.5rem; margin-bottom: 15px;">🐇</div>
             <h1 style="color:#6aa84f; font-size:24pt; margin-bottom:30px; font-weight: bold;">تساوی کسرها</h1>
-            <div style="background:#e0e0e0; border-radius:12px; height:18px; width:80%; overflow:hidden; margin: 0 auto 18px auto; border:2px solid #a4c2f4; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="background:#e0e0e0; border-radius:12px; height:18px; width:80%; overflow:hidden; margin: 0 auto 18px auto; border:2px solid #6aa84f; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                 <div id="portal-loading-bar" style="background: linear-gradient(90deg, #6aa84f, #3c78d8, #f1c232); width:0%; height:100%; transition:width 0.3s ease;"></div>
             </div>
             <p id="portal-loading-text" style="font-size:13pt; color:#38761d; font-weight:bold;"></p>
@@ -367,7 +367,7 @@
                 </p>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 25px; text-align: right; direction: rtl;">
+            <div style="display: flex; flex-direction: column; gap: 10px; background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 25px; text-align: right; direction: rtl; font-size:12pt;">
                 <div style="display:flex; justify-content:space-between; align-items:center;"><span>👤 نام دانش‌آموز:</span><span id="ast-name" style="font-weight:bold; color:#38761d;">---</span></div>
                 <div style="display:flex; justify-content:space-between; align-items:center;"><span>⭐ ستاره‌های ثبت‌شده قبلی:</span><span id="ast-stars" style="font-weight:bold; color:#f1c232;">۰ ⭐</span></div>
                 <div style="display:flex; justify-content:space-between; align-items:center;"><span>🎯 ستاره هدف تکلیف:</span><span id="ast-req-stars" style="font-weight:bold; color:#38761d;">۰ ⭐</span></div>
@@ -382,7 +382,7 @@
                 <div id="portal-progress-bar" style="background:linear-gradient(90deg, #6aa84f, #3c78d8); width:0%; height:100%; transition:width 0.2s;"></div>
             </div>
             <p id="portal-submit-status-text" style="font-size:12pt; color:#555; font-weight:bold; line-height:1.6; direction:rtl;"></p>
-            <button id="portal-retry-submit-btn" style="display:none; margin:15px auto 0; background:#cc0000; color:white; border:none; padding:10px 25px; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="retrySubmission()">🔄 تلاش مجدد برای ارسال</button>
+            <button id="portal-retry-submit-btn" class="btn-start-new" style="display:none; margin:15px auto 0; background:#cc0000; color:white; border:none; padding:10px 25px; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="retrySubmission()">🔄 تلاش مجدد برای ارسال</button>
         </div>
 
         <div id="screen-game" style="display: none;">
@@ -481,7 +481,8 @@
             studentName: '',
             totalStars: 0,
             totalGames: 0,
-            hasEntered: false
+            hasEntered: false,
+            currentScreen: 'register'
         };
 
         const toPersianDigits = (num) => {
@@ -522,11 +523,14 @@
             if (data) {
                 try {
                     profileState = JSON.parse(data);
+                    if (typeof profileState.currentScreen === 'undefined') {
+                        profileState.currentScreen = 'register';
+                    }
                 } catch (e) {
-                    profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false };
+                    profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false, currentScreen: 'register' };
                 }
             } else {
-                profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false };
+                profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false, currentScreen: 'register' };
             }
         };
 
@@ -753,6 +757,7 @@
             profileState.totalGames++;
             profileState.totalStars += earnedThisGame;
             profileState.hasEntered = true;
+            profileState.currentScreen = 'report';
             saveProfileState();
             clearGameState();
 
@@ -762,6 +767,7 @@
                     onSuccess: (data) => {
                         profileState.totalGames = data.plays;
                         profileState.totalStars = data.stars;
+                        profileState.currentScreen = 'report';
                         saveProfileState();
                         showScreen('screen-report');
                         loadReport();
@@ -1095,6 +1101,7 @@
                     profileState.totalGames = data.plays;
                     profileState.totalStars = data.stars;
                     profileState.hasEntered = true;
+                    profileState.currentScreen = 'report';
                     saveProfileState();
                     
                     showScreen('screen-report');
@@ -1159,10 +1166,10 @@
                         document.getElementById('ast-stars').textContent = toPersianDigits(profileState.totalStars) + ' ⭐';
                         document.getElementById('ast-req-stars').textContent = toPersianDigits(Portal.requiredStars) + ' ⭐';
                         showScreen('screen-assistant');
-                    } else if (profileState.totalStars >= Portal.requiredStars) {
+                    } else if (profileState.currentScreen === 'report') {
                         showScreen('screen-report');
                         loadReport();
-                        renderReport(true, profileState.totalStars);
+                        renderReport(profileState.totalStars >= Portal.requiredStars, profileState.totalStars);
                     } else if (profileState.hasEntered || savedState) {
                         startGameAutomatically();
                     } else {
@@ -1205,6 +1212,7 @@
             document.getElementById('startButton').addEventListener('click', () => {
                 loadProfileState();
                 profileState.hasEntered = true;
+                profileState.currentScreen = 'game';
                 saveProfileState();
                 startGameAutomatically();
             });
@@ -1246,6 +1254,10 @@
             document.getElementById('tutorialBtn').addEventListener('click', handleTutorial);
 
             document.getElementById('restartBtn').addEventListener('click', () => {
+                loadProfileState();
+                profileState.currentScreen = 'game';
+                saveProfileState();
+
                 currentStage = 1; 
                 localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
                 clearGameState();
