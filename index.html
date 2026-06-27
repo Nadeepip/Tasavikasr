@@ -1193,12 +1193,12 @@
             });
         }
 
-        window.retryAuthentication = function() {
-            showScreen('Screen-Loading');
-            authenticatePortalStudent();
-        };
-
         document.addEventListener('DOMContentLoaded', () => {
+            window.retryAuthentication = function() {
+                showScreen('Screen-Loading');
+                authenticatePortalStudent();
+            };
+
             showScreen('Screen-Loading');
             authenticatePortalStudent();
 
