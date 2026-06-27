@@ -269,8 +269,8 @@
             float: left;
             font-weight: bold;
         }
-        #reportPage .page-container { border: 5px solid #a4c2f4; }
-        #reportPage h1 { color: #3c78d8; border-bottom: 3px solid #a4c2f4; }
+        #screen-report { border: 5px solid #a4c2f4; }
+        #screen-report h1 { color: #3c78d8; border-bottom: 3px solid #a4c2f4; }
         #restartBtn { background-color: #6aa84f; }
         
         .confetti {
@@ -313,7 +313,7 @@
             <p id="portal-loading-text" style="font-size:13pt; color:#38761d; font-weight:bold;"></p>
         </div>
 
-        <div id="registerPage" class="page-container" style="display: none;">
+        <div id="screen-register" class="page-container" style="display: none;">
             <div id="register-container" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
                 <div id="portal-welcome-section" style="text-align:right; direction:rtl; width: 100%;">
                     <div style="background: linear-gradient(135deg, #f4f9f1, #eef7eb); border: 2px solid #b7e1cd; border-radius: 20px; padding: 22px; box-shadow: 0 10px 25px rgba(106,168,79,0.12); position: relative; overflow: hidden;">
@@ -385,7 +385,7 @@
             <button id="portal-retry-submit-btn" style="display:none; margin:15px auto 0; background:#cc0000; color:white; border:none; padding:10px 25px; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="retrySubmission()">🔄 تلاش مجدد برای ارسال</button>
         </div>
 
-        <div id="gamePage" style="display: none;">
+        <div id="screen-game" style="display: none;">
             <div id="profileBar">
                 <div>
                     <span id="studentName"></span> 🐇 
@@ -441,7 +441,7 @@
             <div id="confettiContainer" class="confetti"></div>
         </div>
 
-        <div id="reportPage" class="page-container" style="display: none;">
+        <div id="screen-report" class="page-container" style="display: none;">
             <h1>🏆 گزارش عملکرد بازی 🏆</h1>
             
             <div id="portal-submit-badge" style="display:none; background:#fff3e0; border:1px solid #ffe082; color:#e65100; padding:15px; border-radius:12px; margin-bottom:12px; font-weight:bold; font-size:12.5pt; line-height:1.6; text-align:right;">
@@ -480,7 +480,8 @@
         let profileState = {
             studentName: '',
             totalStars: 0,
-            totalGames: 0
+            totalGames: 0,
+            hasEntered: false
         };
 
         const toPersianDigits = (num) => {
@@ -497,7 +498,7 @@
         const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
         const showScreen = (id) => {
-            const screens = ['registerPage', 'gamePage', 'reportPage', 'screen-assistant', 'portal-submitting-screen', 'Screen-Loading'];
+            const screens = ['screen-register', 'screen-game', 'screen-report', 'screen-assistant', 'portal-submitting-screen', 'Screen-Loading'];
             screens.forEach(s => {
                 const el = document.getElementById(s);
                 if (el) {
@@ -522,10 +523,10 @@
                 try {
                     profileState = JSON.parse(data);
                 } catch (e) {
-                    profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0 };
+                    profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false };
                 }
             } else {
-                profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0 };
+                profileState = { studentName: Portal.studentName || '', totalStars: Portal.previousStars || 0, totalGames: Portal.previousPlays || 0, hasEntered: false };
             }
         };
 
@@ -579,7 +580,7 @@
             }
             
             if (currentStage <= TOTAL_STAGES) {
-                showScreen('gamePage');
+                showScreen('screen-game');
                 updateProfile();
                 if (savedState) {
                     loadSavedStage(savedState);
@@ -588,7 +589,7 @@
                 }
                 updateProgressBar(currentStage);
             } else {
-                showScreen('reportPage');
+                showScreen('screen-report');
                 loadReport();
             }
         };
@@ -751,6 +752,7 @@
             loadProfileState();
             profileState.totalGames++;
             profileState.totalStars += earnedThisGame;
+            profileState.hasEntered = true;
             saveProfileState();
             clearGameState();
 
@@ -761,14 +763,14 @@
                         profileState.totalGames = data.plays;
                         profileState.totalStars = data.stars;
                         saveProfileState();
-                        showScreen('reportPage');
+                        showScreen('screen-report');
                         loadReport();
                         renderReport(data.goalReached, data.stars);
                     },
                     onFailure: (err) => {}
                 });
             } else {
-                showScreen('reportPage');
+                showScreen('screen-report');
                 loadReport();
                 renderReport(false, profileState.totalStars);
             }
@@ -1089,10 +1091,40 @@
             showScreen('portal-submitting-screen');
             await Portal.submitProgress(null, {
                 onSuccess: (data) => {
-                    authenticatePortalStudent();
+                    loadProfileState();
+                    profileState.totalGames = data.plays;
+                    profileState.totalStars = data.stars;
+                    profileState.hasEntered = true;
+                    saveProfileState();
+                    
+                    showScreen('screen-report');
+                    loadReport();
+                    renderReport(data.goalReached, data.stars);
                 },
-                onFailure: (err) => {}
+                onFailure: (err) => {
+                    showScreen('screen-assistant');
+                }
             });
+        };
+
+        const startGameAutomatically = () => {
+            loadProfileState();
+            const savedState = checkSavedUnfinishedState();
+            if (savedState) {
+                currentStage = savedState.currentStage;
+            } else {
+                currentStage = 1;
+                localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
+                clearGameState();
+            }
+            showScreen('screen-game');
+            updateProfile();
+            if (savedState) {
+                loadSavedStage(savedState);
+            } else {
+                loadStage(currentStage);
+            }
+            updateProgressBar(currentStage);
         };
 
         async function authenticatePortalStudent() {
@@ -1127,8 +1159,14 @@
                         document.getElementById('ast-stars').textContent = toPersianDigits(profileState.totalStars) + ' ⭐';
                         document.getElementById('ast-req-stars').textContent = toPersianDigits(Portal.requiredStars) + ' ⭐';
                         showScreen('screen-assistant');
+                    } else if (profileState.totalStars >= Portal.requiredStars) {
+                        showScreen('screen-report');
+                        loadReport();
+                        renderReport(true, profileState.totalStars);
+                    } else if (profileState.hasEntered || savedState) {
+                        startGameAutomatically();
                     } else {
-                        showScreen('registerPage');
+                        showScreen('screen-register');
                         document.getElementById('portal-welcome-section').style.display = 'block';
                         document.getElementById('portal-student-name').textContent = profileState.studentName;
                         document.getElementById('portal-prev-plays').textContent = toPersianDigits(profileState.totalGames);
@@ -1137,7 +1175,7 @@
                     }
                 },
                 onFailure: (err) => {
-                    showScreen('registerPage');
+                    showScreen('screen-register');
                     document.getElementById('register-container').style.display = 'none';
                     document.getElementById('portal-error-section').style.display = 'block';
                 },
@@ -1150,10 +1188,15 @@
                         document.getElementById('portal-retry-auth-btn').style.display = 'none';
                         errSec.style.display = 'block';
                     }
-                    showScreen('registerPage');
+                    showScreen('screen-register');
                 }
             });
         }
+
+        window.retryAuthentication = function() {
+            showScreen('Screen-Loading');
+            authenticatePortalStudent();
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             showScreen('Screen-Loading');
@@ -1161,22 +1204,9 @@
 
             document.getElementById('startButton').addEventListener('click', () => {
                 loadProfileState();
-                const savedState = checkSavedUnfinishedState();
-                if (savedState) {
-                    currentStage = savedState.currentStage;
-                } else {
-                    currentStage = 1;
-                    localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
-                    clearGameState();
-                }
-                showScreen('gamePage');
-                updateProfile();
-                if (savedState) {
-                    loadSavedStage(savedState);
-                } else {
-                    loadStage(currentStage);
-                }
-                updateProgressBar(currentStage);
+                profileState.hasEntered = true;
+                saveProfileState();
+                startGameAutomatically();
             });
 
             document.addEventListener('input', (e) => {
@@ -1219,7 +1249,7 @@
                 currentStage = 1; 
                 localStorage.setItem(STORAGE_PREFIX + 'currentGameHelps', 0);
                 clearGameState();
-                showScreen('gamePage');
+                showScreen('screen-game');
                 updateProfile();
                 loadStage(currentStage);
                 updateProgressBar(currentStage);
